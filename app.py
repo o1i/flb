@@ -32,9 +32,10 @@ class Comment(db.Model):
 #     db.session.commit()
 #     return redirect(url_for('render_template1'))
 
-@app.route('/api/v1/random/', methods=["GET"])
+@app.route('/api/v1/random/', methods=["GET", "POST"])
 def random():
-    return jsonify([1])
+    input = request.args.get("number")
+    return jsonify({"number": input + 1})
 
 
 if __name__ == '__main__':
