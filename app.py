@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -22,15 +22,19 @@ class Comment(db.Model):
     content = db.Column(db.String(4096))
 
 
-@app.route('/', methods=["GET", "POST"])
-def render_template1():
-    if request.method == "GET":
-        return render_template("template1.html", comments=Comment.query.all())
+# @app.route('/', methods=["GET", "POST"])
+# def render_template1():
+#     if request.method == "GET":
+#         return render_template("template1.html", comments=Comment.query.all())
+#
+#     comment = Comment(content=request.form["contents"])
+#     db.session.add(comment)
+#     db.session.commit()
+#     return redirect(url_for('render_template1'))
 
-    comment = Comment(content=request.form["contents"])
-    db.session.add(comment)
-    db.session.commit()
-    return redirect(url_for('render_template1'))
+@app.route('/api/v1/random/', methods=["GET"])
+def random():
+    return jsonify([1])
 
 
 if __name__ == '__main__':
