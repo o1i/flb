@@ -36,7 +36,8 @@ app = Flask(__name__)
 def random():
     if request.method == "GET":
         return jsonify({"number": 1})
-    input = request.args.get("number")
+    content = request.json
+    input = content["number"]
     return jsonify({"number": input + 1})
 
 
