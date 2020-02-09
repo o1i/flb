@@ -34,6 +34,8 @@ class Comment(db.Model):
 
 @app.route('/api/v1/random/', methods=["GET", "POST"])
 def random():
+    if request.method == "GET":
+        return 1
     input = request.args.get("number")
     return jsonify({"number": input + 1})
 
