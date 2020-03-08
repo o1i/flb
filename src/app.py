@@ -49,12 +49,6 @@ def lb():
         db.session.commit()
 
     query = db.session.query(Lernbuero)
-    table = pd.read_sql(query.statement, query.session.bind)
-    grouped = table.groupby("kw")
-    dict_1 = grouped.apply(lambda x: x.to_dict("records"))
-    dict_2 = dict_1.to_dict()
-    print(dict_2)
-    print(type(dict_2))
     return jsonify(pd.read_sql(query.statement, query.session.bind).groupby("kw").apply(lambda x: x.to_dict("records")).to_dict())
 
 
