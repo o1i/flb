@@ -1,10 +1,13 @@
 from datetime import datetime
 from socket import gethostname
+import sys
 
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 import pandas as pd
+
+sys.path.insert(0, '/home/Althir/flb')
 
 from src.post_functions import post_verification, extract_info
 from src.delete_functions import delete_verification
