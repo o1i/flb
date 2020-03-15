@@ -1,4 +1,5 @@
 from datetime import datetime
+from socket import gethostname
 
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -9,12 +10,16 @@ from src.post_functions import post_verification, extract_info
 from src.delete_functions import delete_verification
 
 app = Flask(__name__)
-try:
-    app.config.from_envvar('SERVER_CONFIG')
-except RuntimeError:
+if 'liveconsole' not in gethostname():
+    print("Local server settings")
     from flask_cors import CORS
+
     app.config.from_object('src.defaultconfig')
     CORS(app)
+else:
+    print("Server settings from envvar")
+    app.config.from_envvar('SERVER_CONFIG')
+
 db = SQLAlchemy(app)
 
 
@@ -64,4 +69,5 @@ if __name__ == '__main__':
     db.session.add(l2)
     db.session.add(l3)
     db.session.commit()
-    app.run(host="0.0.0.0", debug=True)
+    if 'liveconsole' not in gethostname():
+        app.run(host="0.0.0.0", debug=True)
