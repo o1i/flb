@@ -13,7 +13,7 @@ from src.post_functions import post_verification, extract_info
 from src.delete_functions import delete_verification
 
 app = Flask(__name__)
-if 'liveconsole' not in gethostname():
+if 'live' not in gethostname():
     print(gethostname())
     print("Local server settings")
     from flask_cors import CORS
@@ -73,5 +73,5 @@ if __name__ == '__main__':
     db.session.add(l2)
     db.session.add(l3)
     db.session.commit()
-    if 'liveconsole' not in gethostname():
+    if 'live' not in gethostname():
         app.run(host="0.0.0.0", debug=True)
