@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
@@ -23,15 +25,6 @@ class Lernbuero(db.Model):
     start = db.Column(db.Integer())
     end = db.Column(db.Integer())
     kw = db.Column(db.Integer())
-
-
-# l1 = Lernbuero(name="first", start=datetime(2020,3,1,12).timestamp(), end=datetime(2020,3,1,12,45).timestamp(), kw=1)
-# l2 = Lernbuero(name="first", start=datetime(2020,3,1,12,45).timestamp(), end=datetime(2020,3,1,13,30).timestamp(), kw=1)
-# l3 = Lernbuero(name="first", start=datetime(2020,3,1,12,45).timestamp(), end=datetime(2020,3,1,13,30).timestamp(), kw=2)
-# db.session.add(l1)
-# db.session.add(l2)
-# db.session.add(l3)
-# db.session.commit()
 
 
 @app.route('/')
@@ -63,4 +56,12 @@ def lb():
 
 
 if __name__ == '__main__':
+    db.create_all()
+    l1 = Lernbuero(name="first", start=datetime(2020,3,1,12).timestamp(), end=datetime(2020,3,1,12,45).timestamp(), kw=1)
+    l2 = Lernbuero(name="first", start=datetime(2020,3,1,12,45).timestamp(), end=datetime(2020,3,1,13,30).timestamp(), kw=1)
+    l3 = Lernbuero(name="first", start=datetime(2020,3,1,12,45).timestamp(), end=datetime(2020,3,1,13,30).timestamp(), kw=2)
+    db.session.add(l1)
+    db.session.add(l2)
+    db.session.add(l3)
+    db.session.commit()
     app.run(host="0.0.0.0", debug=True)
