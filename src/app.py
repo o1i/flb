@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import re
 
 from flask import Flask, render_template, request, url_for, redirect, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -6,6 +7,8 @@ from flask_cors import CORS
 
 import pandas as pd
 
+from src.post_functions import post_verification, extract_info
+from src.delete_functions import delete_verification
 
 app = Flask(__name__)
 try:
@@ -39,14 +42,24 @@ class Lernbuero(db.Model):
 def lb():
     if request.method == "DELETE":
         content = request.json
-        Lernbuero.query.filter_by(id=content["id"]).delete()
-        db.session.commit()
+        try:
+            print(content)
+            delete_verification(content)
+            print("content ok")
+            Lernbuero.query.filter_by(id=content["id"]).delete()
+            db.session.commit()
+        except AssertionError:
+            pass
 
     if request.method == "POST":
         content = request.json
-        lb = Lernbuero(**content)
-        db.session.add(lb)
-        db.session.commit()
+        try:
+            post_verification(content)
+            lb = Lernbuero(**extract_info(content))
+            db.session.add(lb)
+            db.session.commit()
+        except AssertionError:
+            pass
 
     query = db.session.query(Lernbuero)
     return jsonify(pd.read_sql(query.statement, query.session.bind).groupby("kw").apply(lambda x: x.to_dict("records")).to_dict())
