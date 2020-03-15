@@ -1,9 +1,5 @@
-from datetime import datetime, timezone
-import re
-
-from flask import Flask, render_template, request, url_for, redirect, jsonify
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
 
 import pandas as pd
 
@@ -14,6 +10,7 @@ app = Flask(__name__)
 try:
     app.config.from_envvar('SERVER_CONFIG')
 except RuntimeError:
+    from flask_cors import CORS
     app.config.from_object('src.defaultconfig')
     CORS(app)
 db = SQLAlchemy(app)
