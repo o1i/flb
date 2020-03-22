@@ -5,8 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-from .lernbuero_lehrer import lehrer_routes
-
 
 def create_app():
     app = Flask(__name__, instance_relative_config=False)
