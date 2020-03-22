@@ -1,18 +1,18 @@
-from flask import current_app as app
-from flask import request, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask import request, jsonify, Blueprint
 import pandas as pd
 
-from .post_functions import post_verification, extract_info
-from .delete_functions import delete_verification
-from .models import Lernbuero
+from lernbuero_app.post_functions import post_verification, extract_info
+from lernbuero_app.delete_functions import delete_verification
+from lernbuero_app.models import Lernbuero
+
+from .. import db
 
 
-from . import db
+lehrer_bp = Blueprint("lehrer_bp", __name__, template_folder="templates", static_folder="static")
 
 
-@app.route('/')
-@app.route('/api/v1/lb', methods=["GET", "POST", "DELETE"])
+@lehrer_bp.route('/')
+@lehrer_bp.route('/api/v1/lb', methods=["GET", "POST", "DELETE"])
 def lb():
     if request.method == "DELETE":
         content = request.json
