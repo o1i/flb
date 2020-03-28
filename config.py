@@ -10,6 +10,7 @@ class Config:
     SESSION_COOKIE_NAME = os.environ.get("SESSION_COOKIE_NAME")
     SQLALCHEMY_POOL_RECYCLE = int(os.environ.get("SQLALCHEMY_POOL_RECYCLE"))
     SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 
 class DevConfig(Config):

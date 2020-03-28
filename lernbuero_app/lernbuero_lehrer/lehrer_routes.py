@@ -1,4 +1,5 @@
 from flask import request, jsonify, Blueprint
+from flask_jwt_extended import jwt_required
 import pandas as pd
 
 from lernbuero_app.post_functions import post_verification, extract_info
@@ -13,6 +14,7 @@ lehrer_bp = Blueprint("lehrer_bp", __name__, template_folder="templates", static
 
 @lehrer_bp.route('/')
 @lehrer_bp.route('/api/v1/lb', methods=["GET", "POST", "DELETE"])
+@jwt_required
 def lb():
     if request.method == "DELETE":
         content = request.json
