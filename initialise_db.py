@@ -25,6 +25,7 @@ def main():
     lehrer2 = User(email="l2@schule.ch", password="l2", level="carry")
     with app.app_context():
         db.drop_all()
+        db.session.commit()
         db.create_all()
         db.session.add(l1)
         db.session.add(l2)

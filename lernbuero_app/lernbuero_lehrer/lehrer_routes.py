@@ -1,3 +1,5 @@
+import os
+
 from flask import request, jsonify, Blueprint
 from flask_jwt_extended import jwt_required
 import pandas as pd
@@ -16,7 +18,11 @@ lehrer_bp = Blueprint("lehrer_bp", __name__, template_folder="templates", static
 @lehrer_bp.route('/api/v1/lb/lehrer', methods=["GET", "POST", "DELETE"])
 @jwt_required
 def lb():
+    if "DEBUG" in os.environ.keys(): print("/api/v1/lb/lehrer")
+    print("lb/lehrer")
+    print(request)
     if request.method == "DELETE":
+        if "DEBUG" in os.environ.keys(): print("delete")
         content = request.json
         try:
             print(content)
@@ -28,6 +34,7 @@ def lb():
             pass
 
     if request.method == "POST":
+        if "DEBUG" in os.environ.keys(): print("post")
         content = request.json
         try:
             post_verification_lb(content)
@@ -37,6 +44,7 @@ def lb():
         except AssertionError:
             pass
 
+    if "DEBUG" in os.environ.keys(): print("return")
     query = db.session.query(Lernbuero)
     return jsonify(pd.read_sql(query.statement, query.session.bind)
                    .groupby("kw")
