@@ -19,7 +19,10 @@ def create_app():
         app.config.from_object("config.ProdConfig")
 
     db.init_app(app)
+
     jwt = JWTManager(app)
+    from lernbuero_app.auth.auth import add_claims_to_access_token
+    jwt.user_claims_loader(add_claims_to_access_token)
 
     with app.app_context():
         from lernbuero_app.lernbuero_lehrer import lehrer_routes

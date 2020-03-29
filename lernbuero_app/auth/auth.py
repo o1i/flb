@@ -18,13 +18,17 @@ auth_bp = Blueprint("auth", __name__, template_folder="templates", static_folder
 def login():
     email = request.json.get('email', None)
     password = request.json.get('password', None)
-    print(email)
-    print(password)
     user = User.query.filter_by(email=email).first()
-    print(password.encode("utf-8"))
-    print(user.password.encode("utf-8"))
     if not user or not safe_str_cmp(password.encode("utf-8"), user.password.encode("utf-8")):
         return jsonify({"msg": "Bad username or password"}), 401
 
     ret = {'access_token': create_access_token(email)}
     return jsonify(ret), 200
+
+
+def add_claims_to_access_token(identity):
+    user = User.query.filter_by(email=identity).first()
+    return {
+        'email': identity,
+        'level': user.level
+    }
