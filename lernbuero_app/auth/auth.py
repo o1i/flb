@@ -14,7 +14,7 @@ app = current_app
 auth_bp = Blueprint("auth", __name__, template_folder="templates", static_folder="static")
 
 
-@auth_bp.route("/auth", methods=["POST"])
+@auth_bp.route("/api/v1/auth", methods=["POST"])
 def login():
     email = request.json.get('email', None)
     password = request.json.get('password', None)
