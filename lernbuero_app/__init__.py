@@ -1,17 +1,21 @@
+import logging
 from socket import gethostname
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_claims
 
+
 db = SQLAlchemy()
+logger = logging.getLogger(__name__)
 
 
 def create_app():
     app = Flask(__name__, instance_relative_config=False)
 
     if 'live' not in gethostname():
-        print("local settings")
+        logger.info("local settings")
         app.config.from_object("config.DevConfig")
+        logging.basicConfig(filename=app.config["LOG_PATH"], level=app.config["LOG_LEVEL"])
         from flask_cors import CORS
         CORS(app)
     else:
@@ -30,4 +34,5 @@ def create_app():
         from lernbuero_app.auth import auth
         app.register_blueprint(auth.auth_bp)
         db.create_all()
+        logger.info("Initialisation done")
         return app

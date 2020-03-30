@@ -1,3 +1,4 @@
+import logging
 import os
 
 from flask import request, jsonify, Blueprint
@@ -12,29 +13,30 @@ from lernbuero_app.models import Lernbuero, User
 from .. import db
 
 
+logger = logging.getLogger(__name__)
 lehrer_bp = Blueprint("lehrer_bp", __name__, template_folder="templates", static_folder="static")
 
 
 @lehrer_bp.route('/api/v1/lb/lehrer', methods=["GET", "POST", "DELETE"])
 @jwt_required
 def lb():
-    if "DEBUG" in os.environ.keys(): print("/api/v1/lb/lehrer")
-    print("lb/lehrer")
-    print(request)
+    if "DEBUG" in os.environ.keys(): logger.info("/api/v1/lb/lehrer")
+    logger.info("lb/lehrer")
+    logger.info(request)
     if request.method == "DELETE":
-        if "DEBUG" in os.environ.keys(): print("delete")
+        if "DEBUG" in os.environ.keys(): logger.info("delete")
         content = request.json
         try:
-            print(content)
+            logger.info(content)
             delete_verification(content)
-            print("content ok")
+            logger.info("content ok")
             Lernbuero.query.filter_by(id=content["id"]).delete()
             db.session.commit()
         except AssertionError:
             pass
 
     if request.method == "POST":
-        if "DEBUG" in os.environ.keys(): print("post")
+        if "DEBUG" in os.environ.keys(): logger.info("post")
         content = request.json
         try:
             post_verification_lb(content)
@@ -44,7 +46,7 @@ def lb():
         except AssertionError:
             pass
 
-    if "DEBUG" in os.environ.keys(): print("return")
+    if "DEBUG" in os.environ.keys(): logger.info("return")
     query = db.session.query(Lernbuero)
     return jsonify(pd.read_sql(query.statement, query.session.bind)
                    .groupby("kw")
@@ -58,9 +60,9 @@ def handle_sus():
     if request.method == "DELETE":
         content = request.json
         try:
-            print(content)
+            logger.info(content)
             delete_verification(content)
-            print("content ok")
+            logger.info("content ok")
             User.query.filter_by(id=content["id"]).delete()
             db.session.commit()
         except AssertionError:

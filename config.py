@@ -1,3 +1,4 @@
+import logging
 import os
 from dotenv import load_dotenv
 
@@ -11,6 +12,7 @@ class Config:
     SQLALCHEMY_POOL_RECYCLE = int(os.environ.get("SQLALCHEMY_POOL_RECYCLE"))
     SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+    LOG_PATH = os.path.join(os.path.dirname(__file__), '.log')
 
 
 class DevConfig(Config):
@@ -18,9 +20,11 @@ class DevConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI")
     os.environ["DEBUG"] = "True"
+    LOG_LEVEL = logging.DEBUG
 
 
 class ProdConfig(Config):
     TESTING = False
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get("PROD_DATABASE_URI")
+    LOG_LEVEL = logging.WARNING
