@@ -15,13 +15,13 @@ def create_app():
     if 'live' not in gethostname():
         logger.info("local settings")
         app.config.from_object("config.DevConfig")
-        logging.basicConfig(filename=app.config["LOG_PATH"], level=app.config["LOG_LEVEL"])
         from flask_cors import CORS
         CORS(app)
     else:
         print("production settings")
         app.config.from_object("config.ProdConfig")
 
+    logging.basicConfig(filename=app.config["LOG_PATH"], level=app.config["LOG_LEVEL"])
     db.init_app(app)
 
     jwt = JWTManager(app)
