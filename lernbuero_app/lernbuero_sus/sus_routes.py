@@ -16,25 +16,25 @@ sus_bp = Blueprint("sus_bp", __name__, template_folder="templates", static_folde
 
 
 @sus_bp.route('/api/v1/lb/sus', methods=["GET", "POST", "DELETE"])
-@jwt_required
 def lb():
     if "DEBUG" in os.environ.keys(): logger.info("/api/v1/lb/sus")
     logger.info("lb/sus")
     logger.info(request)
 
-    sus = User.query.filter_by(id=1).first()
-    print(User.enroled_in)
-
     if request.method == "POST":
         if "DEBUG" in os.environ.keys(): logger.info("post")
         content = request.json
         try:
+            print("trying")
+            print(content)
             subscription_verification(content)
-            lernbuero_instance = Lernbuero(**extract_info_lb(content))
-            db.session.add(lernbuero_instance)
+            sus = User.query.filter_by(id=content["sus"]).first()
+            sus.enroled_in = sus.enroled_in.filter(Lernbuero.kw != content["kw"])
+            sus.enroled_in.append(Lernbuero.query.get(content["lb"]))
             db.session.commit()
-        except AssertionError:
-            pass
+            print("finished trying")
+        except AssertionError as err:
+            print(err)
 
     if "DEBUG" in os.environ.keys(): logger.info("return")
     query = db.session.query(Lernbuero)

@@ -31,6 +31,8 @@ def create_app():
     with app.app_context():
         from lernbuero_app.lernbuero_lehrer import lehrer_routes
         app.register_blueprint(lehrer_routes.lehrer_bp)
+        from lernbuero_app.lernbuero_sus import sus_routes
+        app.register_blueprint(sus_routes.sus_bp)
         from lernbuero_app.auth import auth
         app.register_blueprint(auth.auth_bp)
         db.create_all()

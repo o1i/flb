@@ -17,7 +17,7 @@ class Lernbuero(db.Model):
     kw = db.Column(db.Integer())
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     owner = db.relationship("User", back_populates="lbs")
-    enroled_sus = db.relationship("User", secondary=enrolment, back_populates="enroled_in")
+    enroled_sus = db.relationship("User", secondary=enrolment, back_populates="enroled_in", lazy='dynamic')
 
     def __repr__(self) -> str:
         return f"id: {self.id}, name: {self.name}, capacity: {self.capacity}, participant_count: " \
@@ -31,7 +31,7 @@ class User(db.Model):
     password = db.Column(db.String(50))
     level = db.Column(db.String(10))
     lbs = db.relationship("Lernbuero", back_populates="owner")
-    enroled_in = db.relationship("Lernbuero", secondary=enrolment, back_populates="enroled_sus")
+    enroled_in = db.relationship("Lernbuero", secondary=enrolment, back_populates="enroled_sus", lazy='dynamic')
 
     def __repr__(self) -> str:
         return f"email: {self.email}, level: {self.level}"
