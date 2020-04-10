@@ -25,16 +25,13 @@ def lb():
         if "DEBUG" in os.environ.keys(): logger.info("post")
         content = request.json
         try:
-            print("trying")
-            print(content)
             subscription_verification(content)
             sus = User.query.filter_by(id=content["sus"]).first()
             sus.enroled_in = sus.enroled_in.filter(Lernbuero.kw != content["kw"])
             sus.enroled_in.append(Lernbuero.query.get(content["lb"]))
             db.session.commit()
-            print("finished trying")
         except AssertionError as err:
-            print(err)
+            logger.debug(err)
 
     if "DEBUG" in os.environ.keys(): logger.info("return")
     query = db.session.query(Lernbuero)
