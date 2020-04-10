@@ -1,6 +1,4 @@
 from datetime import datetime
-from socket import gethostname
-from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 from lernbuero_app import create_app
@@ -18,9 +16,9 @@ def main():
                    end=datetime(2020, 3, 1, 13, 30).timestamp(), kw=1, capacity=30, participant_count=10)
     l3 = Lernbuero(name="first", start=datetime(2020, 3, 1, 12, 45).timestamp(),
                    end=datetime(2020, 3, 1, 13, 30).timestamp(), kw=2, capacity=30, participant_count=00)
-    sus1 = User(email="sus1@schule.ch", password="sus1", level="feeder")
-    sus2 = User(email="sus2@schule.ch", password="sus2", level="feeder")
-    sus3 = User(email="sus3@schule.ch", password="sus3", level="feeder")
+    sus1 = User(email="sus1@schule.ch", password="sus1", level="feeder", enroled_in=[l1])
+    sus2 = User(email="sus2@schule.ch", password="sus2", level="feeder", enroled_in=[l1, l2])
+    sus3 = User(email="sus3@schule.ch", password="sus3", level="feeder", enroled_in=[l1, l2, l3])
     lehrer1 = User(email="l1@schule.ch", password="l1", level="carry")
     lehrer2 = User(email="l2@schule.ch", password="l2", level="carry")
     with app.app_context():

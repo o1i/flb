@@ -15,7 +15,7 @@ def post_verification_lb(d: dict) -> bool:
     assert re.match("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", d["date"])  # Date Format
     assert re.match("^[0-9]{2}:[0-9]{2}$", d["start"])  # Start Format
     assert re.match("^[0-9]{2}:[0-9]{2}$", d["end"])  # End Format
-    assert isinstance(d["capacity"], int) # capacity format
+    assert isinstance(d["capacity"], int)  # capacity format
     return True
 
 
@@ -48,3 +48,14 @@ def is_email(email: str) -> bool:
                   "[0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-" \
                   "\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"
     return bool(re.match(email_regex, email))
+
+
+def subscription_verification(d: dict) -> bool:
+    if "DEBUG" in os.environ.keys(): logger.info("post verification lb")
+    if "DEBUG" in os.environ.keys(): logger.info(d)
+    assert isinstance(d, dict)
+    assert not set(d.keys()) == set(["sus", "lb", "kw"])
+    assert isinstance(d["sus"], int)  # sus format
+    assert isinstance(d["lb"], int)   # lb format
+    assert isinstance(d["kw"], int)   # kw format
+    return True
