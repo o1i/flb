@@ -30,5 +30,6 @@ def add_claims_to_access_token(identity):
     user = User.query.filter_by(email=identity).first()
     return {
         'email': identity,
-        'level': user.level
+        'level': user.level,
+        "id": user.id
     }

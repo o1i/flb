@@ -54,8 +54,8 @@ def subscription_verification(d: dict) -> bool:
     if "DEBUG" in os.environ.keys(): logger.info("post verification lb")
     if "DEBUG" in os.environ.keys(): logger.info(d)
     assert isinstance(d, dict), "d not a dict"
-    assert set(d.keys()) == set(["sus", "lb", "kw"]), f'wrong keys, got {set(d.keys())}'
-    assert isinstance(d["sus"], int), "sus not int"  # sus format
-    assert isinstance(d["lb"], int), "lb not int"   # lb format
-    assert isinstance(d["kw"], int), "kw not int"  # kw format
+    assert set(d.keys()) == set(["lb", "kw", "enrolled"]), f'wrong keys, got {set(d.keys())}'
+    assert isinstance(d["enrolled"], bool), "subscribed not bool"
+    assert isinstance(d["lb"], int), "lb not int"
+    assert isinstance(d["kw"], int), "kw not int"
     return True

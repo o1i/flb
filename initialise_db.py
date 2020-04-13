@@ -16,11 +16,11 @@ def main():
                    end=datetime(2020, 3, 1, 13, 30).timestamp(), kw=1, capacity=30, participant_count=10)
     l3 = Lernbuero(name="first", start=datetime(2020, 3, 1, 12, 45).timestamp(),
                    end=datetime(2020, 3, 1, 13, 30).timestamp(), kw=2, capacity=30, participant_count=00)
-    sus1 = User(email="sus1@schule.ch", password="sus1", level="feeder", enroled_in=[l1])
-    sus2 = User(email="sus2@schule.ch", password="sus2", level="feeder", enroled_in=[l1, l3])
-    sus3 = User(email="sus3@schule.ch", password="sus3", level="feeder", enroled_in=[l1, l2, l3])
-    lehrer1 = User(email="l1@schule.ch", password="l1", level="carry")
-    lehrer2 = User(email="l2@schule.ch", password="l2", level="carry")
+    sus1 = User(email="s1", password="s", level="feeder", enroled_in=[l1])
+    sus2 = User(email="s2", password="s", level="feeder", enroled_in=[l1, l3])
+    sus3 = User(email="s3", password="s", level="feeder", enroled_in=[l1, l2, l3])
+    lehrer1 = User(email="l1", password="l", level="carry")
+    lehrer2 = User(email="l2", password="l", level="carry")
     with app.app_context():
         db.drop_all()
         db.session.commit()
