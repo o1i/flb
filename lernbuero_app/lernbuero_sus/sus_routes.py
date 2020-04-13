@@ -33,7 +33,6 @@ def lb():
             lb_in_kw = db.session.query(Lernbuero).\
                 filter(Lernbuero.kw==content["kw"]).\
                 with_entities(Lernbuero.id).all()
-            print(f"delete: {lb_in_kw}")
             for lb in lb_in_kw:
                 e = Enrolment.query.get((lb[0], claims["id"]))
                 print(type(e))
@@ -42,14 +41,12 @@ def lb():
                     db.session.delete(e)
                 db.session.commit()
             print("append")
-            L = Lernbuero.query.get(content["lb"])
-            e = Enrolment()
-            e.enroled_sus_ = User.query.get(claims["id"])
-            L.enroled_sus.append(e)
-            print(f"added: id{claims['id']} lb {content['lb']}")
-            print("commit")
-            db.session.commit()
-            print(e)
+            if not content["enrolled"]:
+                L = Lernbuero.query.get(content["lb"])
+                e = Enrolment()
+                e.enroled_sus_ = User.query.get(claims["id"])
+                L.enroled_sus.append(e)
+                db.session.commit()
         except AssertionError as err:
             logger.debug(err)
 
@@ -59,9 +56,7 @@ def lb():
     enscribed = db.session.query(Enrolment).\
         filter(Enrolment.user_id==claims["id"])
     enrolled = pd.read_sql(enscribed.statement, enscribed.session.bind)
-    print(enrolled)
     df["enrolled"] = df["id"].isin(enrolled["lernbuero_id"])
-    print(df)
     return jsonify(df
                    .groupby("kw")
                    .apply(lambda x: x.to_dict("records"))
