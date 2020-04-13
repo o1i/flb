@@ -6,7 +6,7 @@ from flask_jwt_extended import jwt_required, get_jwt_claims
 import pandas as pd
 
 from lernbuero_app.post_functions import subscription_verification, extract_info_lb
-from lernbuero_app.models import Lernbuero, User
+from lernbuero_app.models import Lernbuero, User, Enrolment
 
 from .. import db
 
@@ -21,32 +21,47 @@ def lb():
     if "DEBUG" in os.environ.keys(): logger.info("/api/v1/lb/sus")
     logger.info("lb/sus")
     claims = get_jwt_claims()
+    print(f"claims: {claims}")
 
     if request.method == "POST":
         if "DEBUG" in os.environ.keys(): logger.info("post")
         content = request.json
+        print(f"content: {content}")
         logger.info(content)
         try:
-            print("trying")
-            print(content)
-            print(content["enrolled"])
             subscription_verification(content)
-            sus = User.query.filter_by(id=claims["id"]).first()
-            sus.enroled_in = sus.enroled_in.filter(Lernbuero.kw != content["kw"])
-            sus.enroled_in.append(Lernbuero.query.get(content["lb"]))
+            lb_in_kw = db.session.query(Lernbuero).\
+                filter(Lernbuero.kw==content["kw"]).\
+                with_entities(Lernbuero.id).all()
+            print(f"delete: {lb_in_kw}")
+            for lb in lb_in_kw:
+                e = Enrolment.query.get((lb[0], claims["id"]))
+                print(type(e))
+                print(e)
+                if e:
+                    db.session.delete(e)
+                db.session.commit()
+            print("append")
+            L = Lernbuero.query.get(content["lb"])
+            e = Enrolment()
+            e.enroled_sus_ = User.query.get(claims["id"])
+            L.enroled_sus.append(e)
+            print(f"added: id{claims['id']} lb {content['lb']}")
+            print("commit")
             db.session.commit()
+            print(e)
         except AssertionError as err:
             logger.debug(err)
 
     if "DEBUG" in os.environ.keys(): logger.info("return")
     query = db.session.query(Lernbuero)
     df = pd.read_sql(query.statement, query.session.bind)
-    enscribed = db.session.query(User, Lernbuero).\
-        filter(Lernbuero.id==User.enroled_in).\
-        filter(User.id == claims["id"]).\
-        with_entities(Lernbuero.id)
+    enscribed = db.session.query(Enrolment).\
+        filter(Enrolment.user_id==claims["id"])
     enrolled = pd.read_sql(enscribed.statement, enscribed.session.bind)
-    df["enrolled"] = df["id"].isin(enrolled["id"])
+    print(enrolled)
+    df["enrolled"] = df["id"].isin(enrolled["lernbuero_id"])
+    print(df)
     return jsonify(df
                    .groupby("kw")
                    .apply(lambda x: x.to_dict("records"))
