@@ -28,27 +28,41 @@ def lb():
         content = request.json
         print(f"content: {content}")
         logger.info(content)
-        try:
-            subscription_verification(content)
-            lb_in_kw = db.session.query(Lernbuero).\
-                filter(Lernbuero.kw==content["kw"]).\
-                with_entities(Lernbuero.id).all()
-            for lb in lb_in_kw:
-                e = Enrolment.query.get((lb[0], claims["id"]))
-                print(type(e))
-                print(e)
-                if e:
-                    db.session.delete(e)
-                db.session.commit()
-            print("append")
-            if not content["enrolled"]:
-                L = Lernbuero.query.get(content["lb"])
-                e = Enrolment()
-                e.enroled_sus_ = User.query.get(claims["id"])
-                L.enroled_sus.append(e)
-                db.session.commit()
-        except AssertionError as err:
-            logger.debug(err)
+        spare_capacity_query = db.session.query(db.func.count(Lernbuero.enroled_sus), Lernbuero.capacity)\
+            .select_from(Lernbuero).filter(Lernbuero.id == content["lb"])
+        spare_capacity = pd.read_sql(spare_capacity_query.statement, spare_capacity_query.session.bind)
+        print(spare_capacity)
+        lb = Lernbuero.query.get(content["lb"])
+        enrolled = sum(1 for _ in lb.enroled_sus)
+        print(f"enrolled: {enrolled}")
+        is_free = lb.capacity > enrolled
+        print(f"is_free: {is_free}")
+        if content["enrolled"] or is_free:
+            try:
+                subscription_verification(content)
+                lb_in_kw = db.session.query(Lernbuero).\
+                    filter(Lernbuero.kw==content["kw"]).\
+                    with_entities(Lernbuero.id).all()
+                for lb_id in lb_in_kw:
+                    e = Enrolment.query.get((lb_id[0], claims["id"]))
+                    print("lb: {lb}")
+                    if e:
+                        db.session.delete(e)
+                    unsubscribe_lb = Lernbuero.query.get(lb_id[0])
+                    new_enrolled = sum(1 for _ in unsubscribe_lb.enroled_sus)
+                    unsubscribe_lb.participant_count = new_enrolled
+                    db.session.commit()
+                print("append")
+                if not content["enrolled"] and is_free:
+                    subscribe_lb = Lernbuero.query.get(content["lb"])
+                    e = Enrolment()
+                    e.enroled_sus_ = User.query.get(claims["id"])
+                    subscribe_lb.enroled_sus.append(e)
+                    new_enrolled = sum(1 for _ in subscribe_lb.enroled_sus)
+                    subscribe_lb.participant_count = new_enrolled
+                    db.session.commit()
+            except AssertionError as err:
+                logger.debug(err)
 
     if "DEBUG" in os.environ.keys(): logger.info("return")
     query = db.session.query(Lernbuero)

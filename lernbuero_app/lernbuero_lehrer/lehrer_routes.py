@@ -23,6 +23,7 @@ def lb():
     if "DEBUG" in os.environ.keys(): logger.info("/api/v1/lb/lehrer")
     logger.info("lb/lehrer")
     logger.info(request)
+    print(request.json)
     if request.method == "DELETE":
         if "DEBUG" in os.environ.keys(): logger.info("delete")
         content = request.json
@@ -41,9 +42,11 @@ def lb():
         try:
             post_verification_lb(content)
             lernbuero_instance = Lernbuero(**extract_info_lb(content))
+            logger.info(f"Adding Lernbuero: {lernbuero_instance}")
             db.session.add(lernbuero_instance)
             db.session.commit()
         except AssertionError:
+            logger.warning("Assertion failed")
             pass
 
     if "DEBUG" in os.environ.keys(): logger.info("return")

@@ -18,7 +18,7 @@ def create_app():
         from flask_cors import CORS
         CORS(app)
     else:
-        print("production settings")
+        logger.info("production settings")
         app.config.from_object("config.ProdConfig")
 
     logging.basicConfig(filename=app.config["LOG_PATH"], level=app.config["LOG_LEVEL"])
