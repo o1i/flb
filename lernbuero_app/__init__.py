@@ -24,7 +24,7 @@ def create_app():
     logging.basicConfig(filename=app.config["LOG_PATH"], level=app.config["LOG_LEVEL"])
     db.init_app(app)
 
-    # jwt = JWTManager(app)
+    jwt = JWTManager(app)
     # from lernbuero_app.auth.auth import add_claims_to_access_token
     # jwt.user_claims_loader(add_claims_to_access_token)
 

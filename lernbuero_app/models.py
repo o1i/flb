@@ -53,6 +53,16 @@ class Lernbuero(db.Model):
     block = db.relationship("Block", back_populates="lernbueros")
     instances = db.relationship("LbInstance", back_populates="lernbuero", lazy='dynamic')
 
+    def get_dict(self):
+        return({
+            "id": self.id,
+            "name": self.name,
+            "capacity": self.capacity,
+            "lehrer_id": self.lehrer_id,
+            "gruppe_id": self.gruppe_id,
+            "block_id": self.block_id
+        })
+
     def __repr__(self) -> str:
         return f"id: {self.id}, name: {self.name}, capacity: {self.capacity}, participant_count: " \
                f"{self.participant_count}, kw: {self.kw}, owner: {self.lp}"
