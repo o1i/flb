@@ -2,7 +2,7 @@ import logging
 import os
 
 from flask import request, jsonify, Blueprint
-from flask_jwt_extended import jwt_required, get_jwt_claims
+from flask_jwt_extended import jwt_required, get_jwt_claims, get_jwt_identity
 import pandas as pd
 
 from lernbuero_app.post_functions import subscription_verification, extract_info_lb
@@ -76,3 +76,11 @@ def lb():
                    .apply(lambda x: x.to_dict("records"))
                    .to_dict()), 200
 
+
+@sus_bp.route('/api/v1/lb/sus/test', methods=["GET"])
+@jwt_required
+def test():
+    user = get_jwt_identity()
+    print(type(user))
+    print(user)
+    return jsonify({"test": "sucess"}), 200

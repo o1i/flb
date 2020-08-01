@@ -21,15 +21,23 @@ def login():
     user = User.query.filter_by(email=email).first()
     if not user or not safe_str_cmp(password.encode("utf-8"), user.password.encode("utf-8")):
         return jsonify({"msg": "Bad username or password"}), 401
-
-    ret = {'access_token': create_access_token(email)}
+    print(user)
+    print(type(user.id))
+    print(user.id)
+    print(type(user.type))
+    print(user.type)
+    print(type(user.email))
+    print(user.email)
+    identity = {"email": user.email, "user_type": user.type, "user_id": user.id}
+    print(identity)
+    ret = {'access_token': create_access_token(identity=identity)}
     return jsonify(ret), 200
 
-
-def add_claims_to_access_token(identity):
-    user = User.query.filter_by(email=identity).first()
-    return {
-        'email': identity,
-        'level': user.type,
-        "id": user.id
-    }
+#
+# def add_claims_to_access_token(identity):
+#     user = User.query.filter_by(email=identity).first()
+#     return {
+#         'email': identity,
+#         'level': user.type,
+#         "id": user.id
+#     }
