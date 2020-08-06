@@ -22,6 +22,16 @@ sus_bp = Blueprint("sus_bp", __name__, template_folder="templates", static_folde
 def get_enrolled_in():
     print("enrolment start")
     user_cred = get_jwt_identity()
+    print(request.json)
+    print(type(request.json))
+    print(type(user_cred))
+    print(user_cred)
+    if request.method == "POST" and "id" not in request.json.keys():
+        return "Pad post request", 400
+    if "user_type" not in user_cred.keys():
+        return "Invalid user credentials", 400
+    if user_cred["user_type"] != "sus":
+        return "Invalid user type", 400
     if request.method == "POST":
         user = User.query.get(user_cred["user_id"])
         try:
@@ -29,7 +39,7 @@ def get_enrolled_in():
             e = Enrolment()
             e.enroled_sus_ = user
             try:
-                #todo: unsubscribe, assert its a sus
+                #todo: unsubscribe
                 lb_instance.enroled_sus.append(e)
                 db.session.commit()
             except IntegrityError:
