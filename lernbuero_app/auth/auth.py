@@ -16,20 +16,13 @@ auth_bp = Blueprint("auth", __name__, template_folder="templates", static_folder
 
 @auth_bp.route("/api/v1/auth", methods=["POST"])
 def login():
+    print("arrived in auth")
     email = request.json.get('email', None)
     password = request.json.get('password', None)
     user = User.query.filter_by(email=email).first()
     if not user or not safe_str_cmp(password.encode("utf-8"), user.password.encode("utf-8")):
         return jsonify({"msg": "Bad username or password"}), 401
-    print(user)
-    print(type(user.id))
-    print(user.id)
-    print(type(user.type))
-    print(user.type)
-    print(type(user.email))
-    print(user.email)
     identity = {"email": user.email, "user_type": user.type, "user_id": user.id}
-    print(identity)
     ret = {'access_token': create_access_token(identity=identity)}
     return jsonify(ret), 200
 
