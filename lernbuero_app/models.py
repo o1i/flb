@@ -45,11 +45,12 @@ class Lernbuero(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30))
     capacity = db.Column(db.Integer())
-    lehrer_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    lehrer = db.relationship("User", back_populates="lbs")
+    lp_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    lp = db.relationship("User", back_populates="lbs")
     gruppe_id = db.Column(db.Integer, db.ForeignKey("gruppe.id"))
     gruppe = db.relationship("Gruppe", back_populates="lernbueros")
     block_id = db.Column(db.Integer, db.ForeignKey("block.id"), nullable=False)
+    ort = db.Column(db.String(100))
     block = db.relationship("Block", back_populates="lernbueros")
     instances = db.relationship("LbInstance", back_populates="lernbuero", lazy='dynamic')
 
@@ -58,14 +59,13 @@ class Lernbuero(db.Model):
             "id": self.id,
             "name": self.name,
             "capacity": self.capacity,
-            "lehrer_id": self.lehrer_id,
+            "lp_id": self.lp_id,
             "gruppe_id": self.gruppe_id,
             "block_id": self.block_id
         })
 
     def __repr__(self) -> str:
-        return f"id: {self.id}, name: {self.name}, capacity: {self.capacity}, participant_count: " \
-               f"{self.participant_count}, kw: {self.kw}, owner: {self.lp}"
+        return "Lernbuero(" + str(self.get_dict()) + ")"
 
 
 class LbInstance(db.Model):
@@ -89,7 +89,7 @@ class User(db.Model):
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(50))
     type = db.Column(db.String(10))
-    lbs = db.relationship("Lernbuero", back_populates="lehrer")
+    lbs = db.relationship("Lernbuero", back_populates="lp")
     enroled_in = db.relationship("Enrolment", back_populates="enroled_sus_", lazy='dynamic')
     gruppe_id = db.Column(db.Integer, db.ForeignKey("gruppe.id"))
     gruppe = db.relationship("Gruppe", back_populates="users")
