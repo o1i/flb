@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import os
 
@@ -8,7 +8,7 @@ import pandas as pd
 from sqlalchemy.exc import IntegrityError
 
 from lernbuero_app.post_functions import subscription_verification, extract_info_lb
-from lernbuero_app.models import Lernbuero, User, Enrolment, LbInstance
+from lernbuero_app.models import Lernbuero, User, Enrolment, LbInstance, Block
 
 from .. import db
 
@@ -46,7 +46,18 @@ def get_enrolled_in():
                        "current": e.enroled_in_.participant_count,
                        "start": 0,
                        "id": e.enroled_in_.id} for e in enrolments]
-    return jsonify(enrolment_info), 200
+    blocks = Block.query.filter_by(gruppe_id=user.gruppe_id).all()
+
+    today = datetime.today()
+
+    def one_week(offset):
+        return {"index": current_week + offset,
+                "from": today + timedelta(days=-today.weekday(), weeks=offset),
+                "to": today + timedelta(days=-today.weekday() + 4, weeks=offset)}
+
+    block_info = [{"id": b.id, "weekDay": b.weekday, "start": b.start, "end": b.end} for b in blocks]
+    week_info = [one_week(i) for i in range(2)]
+    return jsonify({"lbInstances": enrolment_info, "blocks": block_info, "kws": week_info}), 200
 
 
 @sus_bp.route('/api/v1/sus/enrolment_options/', methods=["POST"])
