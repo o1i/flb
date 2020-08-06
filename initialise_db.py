@@ -52,11 +52,12 @@ def main():
         db.session.add(lb4)
         db.session.commit()
 
-        lbi1 = LbInstance(lernbuero_id=lb1.id, lernbuero=lb1, participant_count=0, kw=datetime.now().isocalendar()[1])
-        lbi2 = LbInstance(lernbuero_id=lb1.id, lernbuero=lb1, participant_count=0, kw=datetime.now().isocalendar()[1] + 1)
-        lbi3 = LbInstance(lernbuero_id=lb2.id, lernbuero=lb2, participant_count=0, kw=datetime.now().isocalendar()[1] + 3)
-        lbi4 = LbInstance(lernbuero_id=lb3.id, lernbuero=lb3, participant_count=0, kw=datetime.now().isocalendar()[1] + 2)
-        lbi5 = LbInstance(lernbuero_id=lb4.id, lernbuero=lb4, participant_count=0, kw=datetime.now().isocalendar()[1])
+        this_week = datetime.now().isocalendar()[1]
+        lbi1 = LbInstance(lernbuero_id=lb1.id, lernbuero=lb1, participant_count=0, start=datetime.strptime(f"2020{this_week}{lb1.block.weekday}{lb1.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week)
+        lbi2 = LbInstance(lernbuero_id=lb1.id, lernbuero=lb1, participant_count=0, start=datetime.strptime(f"2020{this_week}{lb1.block.weekday}{lb1.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week)
+        lbi3 = LbInstance(lernbuero_id=lb2.id, lernbuero=lb2, participant_count=0, start=datetime.strptime(f"2020{this_week+3}{lb2.block.weekday}{lb2.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week + 3)
+        lbi4 = LbInstance(lernbuero_id=lb3.id, lernbuero=lb3, participant_count=0, start=datetime.strptime(f"2020{this_week+2}{lb3.block.weekday}{lb3.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week + 2)
+        lbi5 = LbInstance(lernbuero_id=lb4.id, lernbuero=lb4, participant_count=0, start=datetime.strptime(f"2020{this_week}{lb4.block.weekday}{lb4.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week)
         db.session.add(lbi1)
         db.session.add(lbi2)
         db.session.add(lbi3)
