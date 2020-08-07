@@ -1,13 +1,10 @@
 from datetime import datetime, timedelta
 import logging
-import os
 
-from flask import request, jsonify, Blueprint, redirect, url_for
-from flask_jwt_extended import jwt_required, get_jwt_claims, get_jwt_identity
-import pandas as pd
+from flask import request, jsonify, Blueprint
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError
 
-from lernbuero_app.post_functions import subscription_verification, extract_info_lb
 from lernbuero_app.models import Lernbuero, User, Enrolment, LbInstance, Block
 
 from .. import db
