@@ -137,7 +137,8 @@ def user():
                 return "invalid request", 400
             delete_users = db.session.query(User).filter(User.id.in_(request.json)).all()
             for u in delete_users:
-                db.session.delete(u)
+                if u.type in ["sus", "lp"]:
+                    db.session.delete(u)
             db.session.commit()
         except:
             db.session.rollback()
