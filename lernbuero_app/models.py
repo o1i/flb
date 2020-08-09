@@ -10,7 +10,7 @@ class Enrolment(db.Model):
     forced = db.Column(db.Boolean, default=False)
 
     def __repr__(self) -> str:
-        return f"lernbuero_id: {self.lbinstance_id}, user_id: {self.user_id}"
+        return f"Enrolment(lernbuero_id: {self.lbinstance_id}, user_id: {self.user_id}, forced: {self.forced})"
 
 
 class Gruppe(db.Model):
@@ -95,4 +95,4 @@ class User(db.Model):
     gruppe = db.relationship("Gruppe", back_populates="users")
 
     def __repr__(self) -> str:
-        return f"email: {self.email}, level: {self.type}"
+        return f"User(email: {self.email}, level: {self.type})"
