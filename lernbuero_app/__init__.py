@@ -29,6 +29,8 @@ def create_app():
     # jwt.user_claims_loader(add_claims_to_access_token)
 
     with app.app_context():
+        from lernbuero_app.lernbuero_ap import ap_routes
+        app.register_blueprint(ap_routes.ap_bp)
         from lernbuero_app.lernbuero_lehrer import lp_routes
         app.register_blueprint(lp_routes.lp_bp)
         from lernbuero_app.lernbuero_sus import sus_routes
