@@ -27,7 +27,6 @@ def get_enrolled_in():
     if user_cred["user_type"] != "lp":
         return f"Invalid user type, expected lp, got {user_cred['user_type']}", 400
     if request.method == "POST":
-        user = User.query.get(user_cred["user_id"])
         try:
             sus_id = request.json["sus_id"]
             lbi_id = request.json["lbi_id"]
@@ -80,23 +79,10 @@ def get_enrolled_in():
     return jsonify(out), 200
 
 
-@lp_bp.route('/api/v1/lp/enrolment_options/', methods=["POST"])
+@lp_bp.route('/api/v1/lp/list_sus/', methods=["POST"])
 @jwt_required
 def get_enrolment_options():
-    user_cred = get_jwt_identity()
-    user = User.query.get(user_cred["user_id"])
-    lbs = Lernbuero.query.filter_by(block_id=request.json["block_id"], gruppe_id=user.gruppe_id).all()
-    lbis = {lb.id: LbInstance.query.filter_by(lernbuero_id=lb.id, kw=request.json["kw_index"]).first() for lb in lbs}
-    lbis = {k: v for k, v in lbis.items() if v}
-    lbs = [lb for lb in lbs if lb.id in lbis.keys()]
-    counts = {}
-    enrolled = {}
-    for lb_id, lbi in lbis.items():
-        all_enrolments = lbi.enroled_sus.all()
-        counts[lb_id] = len(enrolled)
-        enrolled[lb_id] = user.id in [e.user_id for e in all_enrolments]
-    return jsonify([
-        {"lb": {"name": lb.name, "lehrer": lb.lp.email, "ort": lb.ort, "soft": lb.capacity, "id": lb.id, "block": {}},
-         "status": ("enrolled" if enrolled[lb.id] else "open"), "current": counts[lb.id], "id": lbis[lb.id].id
-         } for lb in lbs
-    ]), 200
+    if "lbinstance_id" not in request.json.keys():
+            return "incomplete request", 400
+    sus = LbInstance.query.get(request.json["lbinstance_id"]).lernbuero.gruppe.users
+    return jsonify([{"name": s.email, "id": s.id} for s in sus if s.type=="sus"]), 200
