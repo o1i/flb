@@ -82,6 +82,9 @@ def get_enrolled_in():
 @lp_bp.route('/api/v1/lp/list_sus/', methods=["POST"])
 @jwt_required
 def get_enrolment_options():
+    user_cred = get_jwt_identity()
+    if "user_type" not in user_cred.keys() or user_cred["user_type"] != "lp":
+        return "Invalid user credentials", 400
     if "lbinstance_id" not in request.json.keys():
             return "incomplete request", 400
     sus = LbInstance.query.get(request.json["lbinstance_id"]).lernbuero.gruppe.users
