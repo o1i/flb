@@ -35,11 +35,13 @@ def main():
         s3 = User(email="s3", password="pw", type="sus", gruppe=g1, gruppe_id=g1.id)
         l1 = User(email="l1", password="pw", type="lp")
         l2 = User(email="l2", password="pw", type="lp")
+        a1 = User(email="a1", password="pw", type="ap")
         db.session.add(s1)
         db.session.add(s2)
         db.session.add(s3)
         db.session.add(l1)
         db.session.add(l2)
+        db.session.add(a1)
         db.session.commit()
 
         lb1 = Lernbuero(name="lb1", capacity=25, block=b1, block_id=b1.id, lp_id=l1.id, lp=l1, ort="ort1", gruppe=g1, gruppe_id=g1.id)
