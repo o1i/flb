@@ -33,21 +33,23 @@ def get_enrolled_in():
         user = User.query.get(user_cred["user_id"])
         try:
             lb_instance = LbInstance.query.get(request.json["id"])
-            all_enrolled = (Enrolment.query.filter_by(user_id=user.id)
-                            .join(Enrolment.enroled_in_, aliased=True)
-                            .filter_by(start=lb_instance.start)
-                            .all())
-            for e in all_enrolled:
-                db.session.delete(e)
-            db.session.commit()
-            e = Enrolment()
-            e.enroled_sus_ = user
-            try:
-                lb_instance.enroled_sus.append(e)
+            if len(lb_instance.enroled_sus.all()) < lb_instance.lernbuero.capacity:
+                all_enrolled = (Enrolment.query.filter_by(user_id=user.id)
+                                .join(Enrolment.enroled_in_, aliased=True)
+                                .filter_by(start=lb_instance.start)
+                                .all())
+                for e in all_enrolled:
+                    db.session.delete(e)
                 db.session.commit()
-            except IntegrityError:
-                print("Enrolment failed")
-                db.session.rollback()
+                e = Enrolment()
+                e.enroled_sus_ = user
+                e.forced = False
+                try:
+                    lb_instance.enroled_sus.append(e)
+                    db.session.commit()
+                except IntegrityError:
+                    print("Enrolment failed")
+                    db.session.rollback()
         except KeyError:
             print("Wrong request")
             pass
