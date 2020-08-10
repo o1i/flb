@@ -19,9 +19,11 @@ lp_bp = Blueprint("lp_bp", __name__, template_folder="templates", static_folder=
 def get_enrolled_in():
     print("lp enrolment start")
     user_cred = get_jwt_identity()
-
-    if request.method == "POST" and "id" not in request.json.keys():
-        return "Pad post request", 400
+    print(user_cred)
+    print(request.json)
+    # request.json:  {sus_id: Number, lbi_id: Number, action: "enrol"|"unenrol"}
+    if request.method == "POST" and "sus_id" not in request.json.keys():
+        return "Bad post request", 400
     if "user_type" not in user_cred.keys():
         return "Invalid user credentials", 400
     if user_cred["user_type"] != "lp":
@@ -48,7 +50,7 @@ def get_enrolled_in():
                 print("something went wrong with registration")
                 db.session.rollback()
         if action == "unenrol":
-            e = Enrolment.query.filter_by(user_id=sus.id, lbinstance_id=lbi.id).first()
+            e = Enrolment.query.filter_by(user_id=sus_id, lbinstance_id=lbi_id).first()
             if e:
                 db.session.delete(e)
                 db.session.commit()
