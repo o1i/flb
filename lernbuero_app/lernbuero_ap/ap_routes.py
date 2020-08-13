@@ -35,6 +35,7 @@ def gruppe():
             db.session.rollback()
             pass
     if request.method == "DELETE":
+        # delete with payload [id1, id2,...]
         try:
             if not isinstance(request.json, list):
                 return "invalid request", 400
@@ -43,6 +44,7 @@ def gruppe():
                 db.session.delete(g)
             db.session.commit()
         except:
+            print("rolling back")
             db.session.rollback()
                 
     gruppen = Gruppe.query.all()
@@ -56,13 +58,19 @@ def block():
     if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
         return "Invalid user credentials", 400
     if request.method == "POST":
+        print("block post")
+        # call with list of dicts.
+        # dicts with "id" as keys can be used to modify blocks (weekday, start, end)
+        # dicts without "id" are assumed to have the key "gruppe" so that they can be matched
         gruppen = dict()
+        gruppe_get = None
         try:
             if not isinstance(request.json, list):
                 return "invalid request", 400
             for b in request.json:
                 if "id" in b.keys:
                     block = Block.query.get(b["id"])
+                    gruppe_get = block.gruppe_id
                     if "weekday" in b.keys():
                         block.weekday = b["weekday"]
                     if "start" in b.keys():
@@ -72,6 +80,7 @@ def block():
                 else:
                     if b["gruppe"] not in gruppen.keys():
                         gruppen[b["gruppe"]] = Gruppe.query.get(b["gruppe"])
+                        gruppe_get = b["gruppe"]
                     db.session.add(Block(weekday=b["weekday"], start=b["start"], end=b["end"], gruppe_id=b["gruppe"],
                                          gruppe=gruppen[b["gruppe"]]))
             db.session.commit()
@@ -80,6 +89,8 @@ def block():
             pass
 
     if request.method == "DELETE":
+        print("block delete")
+        # call with a list of ids
         try:
             if not isinstance(request.json, list):
                 return "invalid request", 400
@@ -89,8 +100,12 @@ def block():
             db.session.commit()
         except:
             db.session.rollback()
-
-    bloecke = Block.query.filter_by(gruppe_id=b["gruppe"])
+    print("block get")
+    # call get with a dict {gruppe_id: [0-9]+}.
+    # If the call is post or delete, the latest gruppe_id of affected blocks is taken
+    if gruppe_get is None:
+        gruppe_get = request.json["gruppe_id"]
+    bloecke = Block.query.filter_by(gruppe_id=gruppe_get)
     return jsonify([{"gruppe_id": b.gruppe_id, "weekday": b.weekday, "start": b.start,
                      "end": b.end} for b in bloecke]), 200
 
