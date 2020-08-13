@@ -57,18 +57,18 @@ def block():
     user_cred = get_jwt_identity()
     if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
         return "Invalid user credentials", 400
+    gruppe_get = None
     if request.method == "POST":
         print("block post")
         # call with list of dicts.
         # dicts with "id" as keys can be used to modify blocks (weekday, start, end)
         # dicts without "id" are assumed to have the key "gruppe" so that they can be matched
         gruppen = dict()
-        gruppe_get = None
         try:
             if not isinstance(request.json, list):
                 return "invalid request", 400
             for b in request.json:
-                if "id" in b.keys:
+                if "id" in b.keys():
                     block = Block.query.get(b["id"])
                     gruppe_get = block.gruppe_id
                     if "weekday" in b.keys():
@@ -81,8 +81,9 @@ def block():
                     if b["gruppe"] not in gruppen.keys():
                         gruppen[b["gruppe"]] = Gruppe.query.get(b["gruppe"])
                         gruppe_get = b["gruppe"]
-                    db.session.add(Block(weekday=b["weekday"], start=b["start"], end=b["end"], gruppe_id=b["gruppe"],
-                                         gruppe=gruppen[b["gruppe"]]))
+                    if "start" in b.keys() and "end" in b.keys() and "weekday" in b.keys():  # only accept complete
+                        db.session.add(Block(weekday=b["weekday"], start=b["start"], end=b["end"], gruppe_id=b["gruppe"],
+                                             gruppe=gruppen[b["gruppe"]]))
             db.session.commit()
         except Exception:
             db.session.rollback()
@@ -96,17 +97,16 @@ def block():
                 return "invalid request", 400
             delete_blocks = db.session.query(Block).filter(Block.id.in_(request.json)).all()
             for b in delete_blocks:
+                gruppe_get = b.gruppe_id
                 db.session.delete(b)
             db.session.commit()
         except:
             db.session.rollback()
     print("block get")
-    # call get with a dict {gruppe_id: [0-9]+}.
+    # get is never called, since at least the group must be specified. if you want get, call post with [{gruppe: id}]
     # If the call is post or delete, the latest gruppe_id of affected blocks is taken
-    if gruppe_get is None:
-        gruppe_get = request.json["gruppe_id"]
     bloecke = Block.query.filter_by(gruppe_id=gruppe_get)
-    return jsonify([{"gruppe_id": b.gruppe_id, "weekday": b.weekday, "start": b.start,
+    return jsonify([{"id": b.id, "gruppe_id": b.gruppe_id, "weekday": b.weekday, "start": b.start,
                      "end": b.end} for b in bloecke]), 200
 
 
