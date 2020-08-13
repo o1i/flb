@@ -44,7 +44,6 @@ def gruppe():
                 db.session.delete(g)
             db.session.commit()
         except:
-            print("rolling back")
             db.session.rollback()
                 
     gruppen = Gruppe.query.all()
@@ -59,7 +58,6 @@ def block():
         return "Invalid user credentials", 400
     gruppe_get = None
     if request.method == "POST":
-        print("block post")
         # call with list of dicts.
         # dicts with "id" as keys can be used to modify blocks (weekday, start, end)
         # dicts without "id" are assumed to have the key "gruppe" so that they can be matched
@@ -90,7 +88,6 @@ def block():
             pass
 
     if request.method == "DELETE":
-        print("block delete")
         # call with a list of ids
         try:
             if not isinstance(request.json, list):
@@ -102,7 +99,6 @@ def block():
             db.session.commit()
         except:
             db.session.rollback()
-    print("block get")
     # get is never called, since at least the group must be specified. if you want get, call post with [{gruppe: id}]
     # If the call is post or delete, the latest gruppe_id of affected blocks is taken
     bloecke = Block.query.filter_by(gruppe_id=gruppe_get)
@@ -122,16 +118,16 @@ def user():
             if not isinstance(request.json, list):
                 return "invalid request", 400
             for u in request.json:
-                invalid = ("type" in u.keys and u["type"] == "ap")
+                invalid = ("type" in u.keys() and u["type"] == "ap")
                 if "id" in u.keys() and not invalid:
-                    user = Gruppe.query.get(u["id"])
+                    user = User.query.get(u["id"])
                     user.email = u["email"] if "email" in u.keys() else user.email
                     user.password = u["password"] if "password" in u.keys() else user.password
                     user.type = u["type"] if "type" in u.keys() else user.type
-                    user.gruppe_id = u["gruppe"] if "gruppe" in u.keys() else user.gruppe
+                    user.gruppe_id = u["gruppe"] if "gruppe" in u.keys() else user.gruppe_id
                     if "gruppe" in u.keys() and not u["gruppe"] in gruppen.keys():
                         gruppen[u["gruppe"]] = Gruppe.query.get(u["gruppe"])
-                    user.gruppe = gruppen[u["gruppe"]]
+                    user.gruppe = gruppen[u["gruppe"]] if "gruppe" in u.keys() else user.gruppe
                 elif not invalid:
                     if "gruppe" in u.keys() and not u["gruppe"] in gruppen.keys():
                         gruppen[u["gruppe"]] = Gruppe.query.get(u["gruppe"])
@@ -142,7 +138,7 @@ def user():
                                         gruppe=gruppen[u["gruppe"]] if "gruppe" in u.keys() else None,
                                         ))
             db.session.commit()
-        except Exception:
+        except:
             db.session.rollback()
             pass
         
@@ -157,6 +153,5 @@ def user():
             db.session.commit()
         except:
             db.session.rollback()
-        
     users = User.query.all()
     return jsonify([{"name": u.email, "id": u.id, "password": u.password, "type": u.type, "gruppe_id": u.gruppe_id} for u in users]), 200
