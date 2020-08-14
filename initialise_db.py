@@ -73,6 +73,7 @@ def main():
 
         e2 = Enrolment()
         e2.enroled_sus_ = s1
+        e2.forced = True
         lbis[(2, this_week+1)].enroled_sus.append(e2)
 
         e3 = Enrolment()
