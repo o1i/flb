@@ -17,18 +17,13 @@ sus_bp = Blueprint("sus_bp", __name__, template_folder="templates", static_folde
 @sus_bp.route('/api/v1/sus/enrolment/', methods=["GET", "POST"])
 @jwt_required
 def get_enrolled_in():
-    print("enrolment start")
     user_cred = get_jwt_identity()
-    print(request.json)
-    print(type(request.json))
-    print(type(user_cred))
-    print(user_cred)
     if request.method == "POST" and "id" not in request.json.keys():
-        return "Pad post request", 400
+        return jsonify(["Pad post request"]), 400
     if "user_type" not in user_cred.keys():
-        return "Invalid user credentials", 400
+        return jsonify(["Invalid user credentials"]), 400
     if user_cred["user_type"] != "sus":
-        return "Invalid user type", 400
+        return jsonify(["Invalid user type"]), 400
     if request.method == "POST":
         user = User.query.get(user_cred["user_id"])
         try:
@@ -59,7 +54,7 @@ def get_enrolled_in():
     enrolment_info = [{"lb": e.enroled_in_.lernbuero.get_dict(),
                        "status": "forced" if e.forced else "normal",
                        "current": e.enroled_in_.participant_count,
-                       "start": 0,
+                       "start": e.enroled_in_.start,
                        "id": e.enroled_in_.id} for e in enrolments]
     blocks = Block.query.filter_by(gruppe_id=user.gruppe_id).all()
 
@@ -67,8 +62,8 @@ def get_enrolled_in():
 
     def one_week(offset):
         return {"index": current_week + offset,
-                "from": today + timedelta(days=-today.weekday(), weeks=offset),
-                "to": today + timedelta(days=-today.weekday() + 4, weeks=offset)}
+                "from": (today + timedelta(days=-today.weekday(), weeks=offset)).strftime("%d.%m."),
+                "to": (today + timedelta(days=-today.weekday() + 4, weeks=offset)).strftime("%d.%m.")}
 
     block_info = [{"id": b.id, "weekDay": b.weekday, "start": b.start, "end": b.end} for b in blocks]
     week_info = [one_week(i) for i in range(2)]

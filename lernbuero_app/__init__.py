@@ -13,6 +13,7 @@ def create_app():
     app = Flask(__name__, instance_relative_config=False)
 
     if 'live' not in gethostname():
+        print("local settings")
         logger.info("local settings")
         app.config.from_object("config.DevConfig")
         from flask_cors import CORS
