@@ -50,56 +50,54 @@ def main():
         lb2 = Lernbuero(name="lb2", capacity=25, block=b1, block_id=b1.id, lp_id=l2.id, lp=l2, ort="ort2", gruppe=g1, gruppe_id=g1.id)
         lb3 = Lernbuero(name="lb3", capacity=25, block=b2, block_id=b2.id, lp_id=l1.id, lp=l1, ort="ort3", gruppe=g1, gruppe_id=g1.id)
         lb4 = Lernbuero(name="lb4", capacity=25, block=b3, block_id=b3.id, lp_id=l1.id, lp=l1, ort="ort4", gruppe=g2, gruppe_id=g2.id)
+        lb5 = Lernbuero(name="lb5", capacity=25, block=b2, block_id=b2.id, lp_id=l2.id, lp=l2, ort="ort5", gruppe=g1, gruppe_id=g1.id)
         db.session.add(lb1)
         db.session.add(lb2)
         db.session.add(lb3)
         db.session.add(lb4)
+        db.session.add(lb5)
         db.session.commit()
 
         this_week = datetime.now().isocalendar()[1]
-        lbi1 = LbInstance(lernbuero_id=lb1.id, lernbuero=lb1, participant_count=0, start=datetime.strptime(f"2020{this_week}{lb1.block.weekday}{lb1.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week)
-        lbi2 = LbInstance(lernbuero_id=lb1.id, lernbuero=lb1, participant_count=0, start=datetime.strptime(f"2020{this_week}{lb1.block.weekday}{lb1.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week)
-        lbi3 = LbInstance(lernbuero_id=lb2.id, lernbuero=lb2, participant_count=0, start=datetime.strptime(f"2020{this_week+3}{lb2.block.weekday}{lb2.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week + 3)
-        lbi4 = LbInstance(lernbuero_id=lb3.id, lernbuero=lb3, participant_count=0, start=datetime.strptime(f"2020{this_week+2}{lb3.block.weekday}{lb3.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week + 2)
-        lbi5 = LbInstance(lernbuero_id=lb4.id, lernbuero=lb4, participant_count=0, start=datetime.strptime(f"2020{this_week}{lb4.block.weekday}{lb4.block.start}", "%G%V%u%H:%M").timestamp(), kw=this_week)
-        db.session.add(lbi1)
-        db.session.add(lbi2)
-        db.session.add(lbi3)
-        db.session.add(lbi4)
-        db.session.add(lbi5)
+        lbis = dict()
+        for lb in [lb1, lb2, lb3, lb4, lb5]:
+            for kw in [this_week, this_week + 1, this_week + 2, this_week + 3]:
+                lbi = LbInstance(lernbuero_id=lb.id, lernbuero=lb, participant_count=0, start=datetime.strptime(f"2020{kw}{lb.block.weekday}{lb.block.start}", "%G%V%u%H:%M").timestamp(), kw=kw)
+                lbis[(lb.id, kw)] = lbi
+                db.session.add(lbi)
         db.session.commit()
 
         e1 = Enrolment()
         e1.enroled_sus_ = s1
-        lbi1.enroled_sus.append(e1)
+        lbis[(1, this_week)].enroled_sus.append(e1)
 
         e2 = Enrolment()
         e2.enroled_sus_ = s1
-        lbi2.enroled_sus.append(e2)
+        lbis[(2, this_week+1)].enroled_sus.append(e2)
 
         e3 = Enrolment()
         e3.enroled_sus_ = s1
-        lbi3.enroled_sus.append(e3)
+        lbis[(5, this_week+2)].enroled_sus.append(e3)
 
         e4 = Enrolment()
         e4.enroled_sus_ = s2
-        lbi1.enroled_sus.append(e4)
+        lbis[(1, this_week)].enroled_sus.append(e4)
 
         e5 = Enrolment()
         e5.enroled_sus_ = s2
-        lbi2.enroled_sus.append(e5)
+        lbis[(2, this_week+2)].enroled_sus.append(e5)
 
         e6 = Enrolment()
         e6.enroled_sus_ = s3
-        lbi1.enroled_sus.append(e6)
+        lbis[(1, this_week+1)].enroled_sus.append(e6)
 
         e7 = Enrolment()
         e7.enroled_sus_ = s2
-        lbi4.enroled_sus.append(e7)
+        lbis[(4, this_week)].enroled_sus.append(e7)
 
         e8 = Enrolment()
         e8.enroled_sus_ = s2
-        lbi5.enroled_sus.append(e8)
+        lbis[(5, this_week)].enroled_sus.append(e8)
 
         db.session.add(e1)
         db.session.add(e2)
