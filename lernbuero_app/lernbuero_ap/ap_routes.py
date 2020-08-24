@@ -25,7 +25,7 @@ def gruppe():
             if not isinstance(request.json, list):
                 return "invalid request", 400
             for g in request.json:
-                if "id" in g.keys():
+                if "id" in g.keys() and g["id"] > 0:
                     gruppe = Gruppe.query.get(g["id"])
                     gruppe.name = g["name"]
                 else:
