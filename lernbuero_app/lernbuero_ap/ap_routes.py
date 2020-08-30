@@ -66,7 +66,10 @@ def block():
             if not isinstance(request.json, list):
                 return "invalid request", 400
             for b in request.json:
-                if "id" in b.keys():
+                # if gruppe is in keys, ignore the rest (only get) (payload: [{gruppe: x}]
+                if "gruppe_get" in b.keys():
+                    gruppe_get = b["gruppe_get"]
+                elif "id" in b.keys():
                     block = Block.query.get(b["id"])
                     gruppe_get = block.gruppe_id
                     if "weekday" in b.keys():
@@ -76,14 +79,14 @@ def block():
                     if "end" in b.keys():
                         block.end = b["end"]
                 else:
-                    if b["gruppe"] not in gruppen.keys():
-                        gruppen[b["gruppe"]] = Gruppe.query.get(b["gruppe"])
-                        gruppe_get = b["gruppe"]
+                    if b["gruppe"]["id"] not in gruppen.keys():
+                        gruppen[b["gruppe"]["id"]] = Gruppe.query.get(b["gruppe"]["id"])
+                        gruppe_get = b["gruppe"]["id"]
                     if "start" in b.keys() and "end" in b.keys() and "weekday" in b.keys():  # only accept complete
-                        db.session.add(Block(weekday=b["weekday"], start=b["start"], end=b["end"], gruppe_id=b["gruppe"],
-                                             gruppe=gruppen[b["gruppe"]]))
+                        db.session.add(Block(weekday=b["weekday"], start=b["start"], end=b["end"], gruppe_id=b["gruppe"]["id"],
+                                             gruppe=gruppen[b["gruppe"]["id"]]))
             db.session.commit()
-        except Exception:
+        except ValueError:
             db.session.rollback()
             pass
 
@@ -101,9 +104,94 @@ def block():
             db.session.rollback()
     # get is never called, since at least the group must be specified. if you want get, call post with [{gruppe: id}]
     # If the call is post or delete, the latest gruppe_id of affected blocks is taken
-    bloecke = Block.query.filter_by(gruppe_id=gruppe_get)
-    return jsonify([{"id": b.id, "gruppe_id": b.gruppe_id, "weekday": b.weekday, "start": b.start,
+    bloecke = Block.query.filter_by(gruppe_id=gruppe_get).all()
+    return jsonify([{"id": b.id, "gruppe": {"id": b.gruppe_id}, "weekDay": b.weekday, "start": b.start,
                      "end": b.end} for b in bloecke]), 200
+
+
+@ap_bp.route('/api/v1/ap/lernbuero/', methods=["POST", "DELETE"])
+@jwt_required
+def lernbuero():
+    # Never called with get, since block id has to be provided.
+    # Get: {"block_id": block_id}
+    # Add/Edit: dict with id, name ,capacity, lp_id, block, ort. id<0 means add
+    # delete: {"id": id}
+    user_cred = get_jwt_identity()
+    if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
+        return "Invalid user credentials", 400
+    block_to_get = -1
+    if request.method == "POST":
+        if "block_id" in request.json.keys():  # get
+            block_to_get = request.json["block_id"]
+        elif not {"id", "name", "capacity", "lp_id", "block", "ort"} - request.json.keys():
+            block = Block.query.get(request.json["block"]["id"])
+            block_to_get = block.id
+            if request.json["id"] > 0:  # edit
+                lb = Lernbuero.query.get(request.json["id"])
+                lb.name = request.json["name"]
+                lb.capacity = request.json["capacity"]
+                lb.lp_id = request.json["lp_id"]
+                lb.ort = request.json["ort"]
+                db.session.commit()
+            else:  # add
+                lp = User.query.get(request.json["lp_id"])
+                gruppe = Gruppe.query.get(request.json["block"]["gruppe"]["id"])
+                lb = Lernbuero(
+                    name=request.json["name"],
+                    capacity=request.json["capacity"],
+                    lp_id=request.json["lp_id"],
+                    lp=lp,
+                    gruppe_id=request.json["block"]["gruppe"]["id"],
+                    gruppe=gruppe,
+                    block_id=request.json["block"]["id"],
+                    block=block,
+                    ort=request.json["ort"]
+                )
+                db.session.add(lb)
+                this_week = datetime.now().isocalendar()[1]
+                for i in range(52):
+                    start = datetime.strptime(str(datetime.now().year)+str(this_week)+str(block.weekday)+block.start,
+                                              "%G%V%u%H:%M") + timedelta(weeks=i)
+                    db.session.add(LbInstance(
+                        lernbuero_id=lb.id,
+                        lernbuero=lb,
+                        participant_count=0,
+                        start=int(start.timestamp()),
+                        kw=start.strftime("%V")
+                    ))
+                db.session.commit()
+    if request.method == "DELETE":
+        try:
+            lb = Lernbuero.query.get(request.json["id"])
+            block_to_get = lb.block_id
+            lbis = db.session.query(LbInstance).filter(LbInstance.lernbuero_id == lb.id).all()
+            enrolments = db.session.query(Enrolment).filter(Enrolment.lbinstance_id.in_([lbi.id for lbi in lbis])).all()
+            for e in enrolments:
+                db.session.delete(e)
+            for lbi in lbis:
+                db.session.delete(lbi)
+            db.session.delete(lb)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+    lbs = db.session.query(Lernbuero).filter(Lernbuero.block_id == block_to_get).all()
+    return jsonify(
+        [{"name": lb.name,
+          "lehrer": lb.lp.email,
+          "ort": lb.ort,
+          "soft": lb.capacity,
+          "hard": 1000000,
+          "block": {"weekDay": lb.block.weekday,
+                    "start": lb.block.start,
+                    "end": lb.block.end,
+                    "gruppe": {"name": lb.block.gruppe.name,
+                               "id": lb.block.gruppe.id},
+                    "id": lb.block.id},
+          "block_id": lb.block_id,
+          "id": lb.id,
+          } for lb in
+         lbs]), 200
+
 
 
 @ap_bp.route('/api/v1/ap/user/', methods=["GET", "POST", "DELETE"])
