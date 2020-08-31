@@ -118,28 +118,30 @@ def lernbuero():
     # delete: {"id": id}
     user_cred = get_jwt_identity()
     if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
-        return "Invalid user credentials", 400
+        return jsonify(["Bad user type"]), 400
     block_to_get = -1
     if request.method == "POST":
         if "block_id" in request.json.keys():  # get
             block_to_get = request.json["block_id"]
-        elif not {"id", "name", "capacity", "lp_id", "block", "ort"} - request.json.keys():
+        elif not {"id", "name", "capacity", "lp_name", "block", "ort"} - request.json.keys():
             block = Block.query.get(request.json["block"]["id"])
             block_to_get = block.id
+            lp = db.session.query(User).filter(User.email == request.json["lp_name"]).first()
+            if not lp:
+                return jsonify(["invalid teacher name"]), 400
             if request.json["id"] > 0:  # edit
                 lb = Lernbuero.query.get(request.json["id"])
                 lb.name = request.json["name"]
                 lb.capacity = request.json["capacity"]
-                lb.lp_id = request.json["lp_id"]
+                lb.lp_id = lp.id
                 lb.ort = request.json["ort"]
                 db.session.commit()
             else:  # add
-                lp = User.query.get(request.json["lp_id"])
                 gruppe = Gruppe.query.get(request.json["block"]["gruppe"]["id"])
                 lb = Lernbuero(
                     name=request.json["name"],
                     capacity=request.json["capacity"],
-                    lp_id=request.json["lp_id"],
+                    lp_id=lp.id,
                     lp=lp,
                     gruppe_id=request.json["block"]["gruppe"]["id"],
                     gruppe=gruppe,
@@ -174,23 +176,28 @@ def lernbuero():
             db.session.commit()
         except Exception:
             db.session.rollback()
-    lbs = db.session.query(Lernbuero).filter(Lernbuero.block_id == block_to_get).all()
-    return jsonify(
-        [{"name": lb.name,
-          "lehrer": lb.lp.email,
-          "ort": lb.ort,
-          "soft": lb.capacity,
-          "hard": 1000000,
-          "block": {"weekDay": lb.block.weekday,
-                    "start": lb.block.start,
-                    "end": lb.block.end,
-                    "gruppe": {"name": lb.block.gruppe.name,
-                               "id": lb.block.gruppe.id},
-                    "id": lb.block.id},
-          "block_id": lb.block_id,
-          "id": lb.id,
-          } for lb in
-         lbs]), 200
+    lbs = (db.session.query(Lernbuero, User, Block, Gruppe)
+           .filter(Lernbuero.lp_id == User.id)
+           .filter(Lernbuero.block_id == Block.id)
+           .filter(Block.gruppe_id == Gruppe.id)
+           .filter(Lernbuero.block_id == block_to_get)
+           .all())
+    out = [{"name": lb.Lernbuero.name,
+            "lehrer": lb.User.email,
+            "ort": lb.Lernbuero.ort,
+            "soft": lb.Lernbuero.capacity,
+            "hard": 1000000,
+            "block": {"weekDay": lb.Block.weekday,
+                      "start": lb.Block.start,
+                      "end": lb.Block.end,
+                      "gruppe": {"name": lb.Gruppe.name,
+                                 "id": lb.Gruppe.id},
+                      "id": lb.Lernbuero.block.id},
+            "block_id": lb.Lernbuero.block_id,
+            "id": lb.Lernbuero.id,
+            } for lb in
+         lbs]
+    return jsonify(out), 200
 
 
 
