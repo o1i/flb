@@ -200,17 +200,18 @@ def lernbuero():
     return jsonify(out), 200
 
 
-
 @ap_bp.route('/api/v1/ap/user/', methods=["GET", "POST", "DELETE"])
 @jwt_required
 def user():
     user_cred = get_jwt_identity()
     if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
+        print("208")
         return "Invalid user credentials", 400
     if request.method == "POST":
         gruppen = dict()
         try:
             if not isinstance(request.json, list):
+                print("213")
                 return "invalid request", 400
             for u in request.json:
                 invalid = ("type" in u.keys() and u["type"] == "ap")
@@ -240,6 +241,7 @@ def user():
     if request.method == "DELETE":
         try:
             if not isinstance(request.json, list):
+                print("242")
                 return "invalid request", 400
             delete_users = db.session.query(User).filter(User.id.in_(request.json)).all()
             for u in delete_users:
@@ -248,5 +250,14 @@ def user():
             db.session.commit()
         except:
             db.session.rollback()
-    users = User.query.all()
-    return jsonify([{"name": u.email, "id": u.id, "password": u.password, "type": u.type, "gruppe_id": u.gruppe_id} for u in users]), 200
+    users = (db.session.query(User, Gruppe)
+             .outerjoin(Gruppe, User.gruppe_id == Gruppe.id)
+             .all())
+    out = [{
+        "name": u.User.email,
+        "id": u.User.id,
+        "password": u.User.password,
+        "type": u.User.type,
+        "gruppe": u.Gruppe.name if u[1] is not None else "",
+    } for u in users]
+    return jsonify(out), 200
