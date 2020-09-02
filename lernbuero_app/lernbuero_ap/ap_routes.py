@@ -205,13 +205,11 @@ def lernbuero():
 def user():
     user_cred = get_jwt_identity()
     if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
-        print("208")
         return "Invalid user credentials", 400
     if request.method == "POST":
         gruppen = dict()
         try:
             if not isinstance(request.json, list):
-                print("213")
                 return "invalid request", 400
             for u in request.json:
                 invalid = ("type" in u.keys() and u["type"] == "ap")
@@ -241,7 +239,6 @@ def user():
     if request.method == "DELETE":
         try:
             if not isinstance(request.json, list):
-                print("242")
                 return "invalid request", 400
             delete_users = db.session.query(User).filter(User.id.in_(request.json)).all()
             for u in delete_users:
