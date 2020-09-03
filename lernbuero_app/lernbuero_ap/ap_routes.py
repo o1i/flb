@@ -204,6 +204,7 @@ def lernbuero():
 @jwt_required
 def user():
     user_cred = get_jwt_identity()
+    print("A")
     if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
         return "Invalid user credentials", 400
     if request.method == "POST":
@@ -213,26 +214,29 @@ def user():
                 return "invalid request", 400
             for u in request.json:
                 invalid = ("type" in u.keys() and u["type"] == "ap")
-                if "id" in u.keys() and not invalid:
+                if "id" in u.keys() and u["id"] > 0 and not invalid:
                     user = User.query.get(u["id"])
-                    user.email = u["email"] if "email" in u.keys() else user.email
+                    user.email = u["name"] if "name" in u.keys() else user.email
                     user.password = u["password"] if "password" in u.keys() else user.password
                     user.type = u["type"] if "type" in u.keys() else user.type
-                    user.gruppe_id = u["gruppe"] if "gruppe" in u.keys() else user.gruppe_id
                     if "gruppe" in u.keys() and not u["gruppe"] in gruppen.keys():
-                        gruppen[u["gruppe"]] = Gruppe.query.get(u["gruppe"])
-                    user.gruppe = gruppen[u["gruppe"]] if "gruppe" in u.keys() else user.gruppe
+                        gruppen[u["gruppe"]] = db.session.query(Gruppe).filter(Gruppe.name == u["gruppe"]).first()
+                    if "gruppe" in u.keys() and gruppen[u["gruppe"]]:
+                        print(f'conditions {"gruppe" in u.keys()} and {gruppen[u["gruppe"]]}')
+                        user.gruppe = gruppen[u["gruppe"]]
+                        user.gruppe_id = gruppen[u["gruppe"]].id
                 elif not invalid:
+                    print("c")
                     if "gruppe" in u.keys() and not u["gruppe"] in gruppen.keys():
-                        gruppen[u["gruppe"]] = Gruppe.query.get(u["gruppe"])
-                    db.session.add(User(email=u["email"],
+                        gruppen[u["gruppe"]] = db.session.query(Gruppe).filter(Gruppe.name == u["gruppe"]).first()
+                    db.session.add(User(email=u["name"],
                                         password=u["password"],
                                         type=u["type"],
-                                        gruppe_id=u["gruppe"] if "gruppe" in u.keys() else None,
-                                        gruppe=gruppen[u["gruppe"]] if "gruppe" in u.keys() else None,
+                                        gruppe_id=gruppen[u["gruppe"]].id if "gruppe" in u.keys() and gruppen[u["gruppe"]] else None,
+                                        gruppe=gruppen[u["gruppe"]] if "gruppe" in u.keys() and gruppen[u["gruppe"]] else None,
                                         ))
             db.session.commit()
-        except:
+        except ValueError:
             db.session.rollback()
             pass
         
