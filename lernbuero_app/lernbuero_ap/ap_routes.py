@@ -166,12 +166,6 @@ def lernbuero():
         try:
             lb = Lernbuero.query.get(request.json["id"])
             block_to_get = lb.block_id
-            lbis = db.session.query(LbInstance).filter(LbInstance.lernbuero_id == lb.id).all()
-            enrolments = db.session.query(Enrolment).filter(Enrolment.lbinstance_id.in_([lbi.id for lbi in lbis])).all()
-            for e in enrolments:
-                db.session.delete(e)
-            for lbi in lbis:
-                db.session.delete(lbi)
             db.session.delete(lb)
             db.session.commit()
         except Exception:

@@ -19,7 +19,7 @@ class Gruppe(db.Model):
     name = db.Column(db.String(30))
     users = db.relationship("User", back_populates="gruppe")
     lernbueros = db.relationship("Lernbuero", back_populates="gruppe")
-    blocks = db.relationship("Block", back_populates="gruppe")
+    blocks = db.relationship("Block", back_populates="gruppe", cascade="all, delete")
 
     def __repr__(self) -> str:
         return f"Gruppe(id={self.id}, name='{self.name}')"
@@ -33,7 +33,7 @@ class Block(db.Model):
     end = db.Column(db.String(30))
     gruppe_id = db.Column(db.Integer, db.ForeignKey("gruppe.id"))
     gruppe = db.relationship("Gruppe", back_populates="blocks")
-    lernbueros = db.relationship("Lernbuero", back_populates="block")
+    lernbueros = db.relationship("Lernbuero", back_populates="block", cascade="all, delete")
 
     def __repr__(self) -> str:
         return f"Gruppe(id={self.id}, weekday={self.weekday}, start='{self.start}', end='{self.end}'," \
@@ -52,7 +52,7 @@ class Lernbuero(db.Model):
     block_id = db.Column(db.Integer, db.ForeignKey("block.id"), nullable=False)
     ort = db.Column(db.String(100))
     block = db.relationship("Block", back_populates="lernbueros")
-    instances = db.relationship("LbInstance", back_populates="lernbuero", lazy='dynamic')
+    instances = db.relationship("LbInstance", back_populates="lernbuero", lazy='dynamic', cascade="all, delete")
 
     def get_dict(self):
         return({
@@ -76,7 +76,7 @@ class LbInstance(db.Model):
     participant_count = db.Column(db.Integer())
     start = db.Column(db.Integer())
     kw = db.Column(db.Integer())
-    enroled_sus = db.relationship("Enrolment", back_populates="enroled_in_", lazy='dynamic')
+    enroled_sus = db.relationship("Enrolment", back_populates="enroled_in_", lazy='dynamic', cascade="delete")
 
     def __repr__(self):
         return f"LbInstance(id= {self.id}, lernbuero_id={self.lernbuero_id}, " \
@@ -90,7 +90,7 @@ class User(db.Model):
     password = db.Column(db.String(50))
     type = db.Column(db.String(10))
     lbs = db.relationship("Lernbuero", back_populates="lp")
-    enroled_in = db.relationship("Enrolment", back_populates="enroled_sus_", lazy='dynamic')
+    enroled_in = db.relationship("Enrolment", back_populates="enroled_sus_", lazy='dynamic', cascade="delete")
     gruppe_id = db.Column(db.Integer, db.ForeignKey("gruppe.id"))
     gruppe = db.relationship("Gruppe", back_populates="users")
 
