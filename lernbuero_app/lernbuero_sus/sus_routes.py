@@ -39,6 +39,7 @@ def get_enrolled_in():
                 e = Enrolment()
                 e.enroled_sus_ = user
                 e.forced = False
+                db.session.add(e)
                 try:
                     lb_instance.enroled_sus.append(e)
                     db.session.commit()
@@ -52,7 +53,8 @@ def get_enrolled_in():
     user = User.query.get(user_cred["user_id"])
     enrolments = [e for e in user.enroled_in.all() if current_week <= e.enroled_in_.kw <= current_week+2]
     enrolment_info = [{"lb": e.enroled_in_.lernbuero.get_dict(),
-                       "status": "forced" if e.forced else "normal",
+                       "status": "forced" if e.forced else ("expired" if e.enroled_in_.start + 3600 * 24 <
+                                                                         datetime.now().timestamp() else "enrolled"),
                        "current": e.enroled_in_.participant_count,
                        "start": e.enroled_in_.start,
                        "id": e.enroled_in_.id} for e in enrolments]
@@ -64,7 +66,6 @@ def get_enrolled_in():
         return {"index": current_week + offset,
                 "from": (today + timedelta(days=-today.weekday(), weeks=offset)).strftime("%d.%m."),
                 "to": (today + timedelta(days=-today.weekday() + 4, weeks=offset)).strftime("%d.%m.")}
-
     block_info = [{"id": b.id, "weekDay": b.weekday, "start": b.start, "end": b.end} for b in blocks]
     week_info = [one_week(i) for i in range(2)]
     return jsonify({"lbInstances": enrolment_info, "blocks": block_info, "kws": week_info}), 200
