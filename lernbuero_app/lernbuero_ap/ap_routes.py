@@ -198,7 +198,6 @@ def lernbuero():
 @jwt_required
 def user():
     user_cred = get_jwt_identity()
-    print("A")
     if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
         return "Invalid user credentials", 400
     if request.method == "POST":
@@ -216,11 +215,9 @@ def user():
                     if "gruppe" in u.keys() and not u["gruppe"] in gruppen.keys():
                         gruppen[u["gruppe"]] = db.session.query(Gruppe).filter(Gruppe.name == u["gruppe"]).first()
                     if "gruppe" in u.keys() and gruppen[u["gruppe"]]:
-                        print(f'conditions {"gruppe" in u.keys()} and {gruppen[u["gruppe"]]}')
                         user.gruppe = gruppen[u["gruppe"]]
                         user.gruppe_id = gruppen[u["gruppe"]].id
                 elif not invalid:
-                    print("c")
                     if "gruppe" in u.keys() and not u["gruppe"] in gruppen.keys():
                         gruppen[u["gruppe"]] = db.session.query(Gruppe).filter(Gruppe.name == u["gruppe"]).first()
                     db.session.add(User(email=u["name"],
@@ -233,7 +230,7 @@ def user():
         except ValueError:
             db.session.rollback()
             pass
-        
+
     if request.method == "DELETE":
         try:
             if not isinstance(request.json, list):
@@ -255,4 +252,17 @@ def user():
         "type": u.User.type,
         "gruppe": u.Gruppe.name if u[1] is not None else "",
     } for u in users]
+    return jsonify(out), 200
+
+
+@ap_bp.route('/api/v1/ap/lp/', methods=["GET"])
+@jwt_required
+def allLps():
+    user_cred = get_jwt_identity()
+    if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
+        return "Invalid user credentials", 400
+    lps = db.session.query(User).filter(User.type == "lp").all()
+    print(lps)
+    out = [lp.email for lp in lps]
+    print(out)
     return jsonify(out), 200
