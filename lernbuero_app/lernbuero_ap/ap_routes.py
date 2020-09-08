@@ -262,7 +262,5 @@ def allLps():
     if "user_type" not in user_cred.keys() or user_cred["user_type"] != "ap":
         return "Invalid user credentials", 400
     lps = db.session.query(User).filter(User.type == "lp").all()
-    print(lps)
     out = [lp.email for lp in lps]
-    print(out)
     return jsonify(out), 200
