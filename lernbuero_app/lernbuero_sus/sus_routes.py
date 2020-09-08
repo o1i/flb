@@ -53,8 +53,8 @@ def get_enrolled_in():
     user = User.query.get(user_cred["user_id"])
     enrolments = [e for e in user.enroled_in.all() if current_week <= e.enroled_in_.kw <= current_week+2]
     enrolment_info = [{"lb": e.enroled_in_.lernbuero.get_dict(),
-                       "status": "forced" if e.forced else ("expired" if e.enroled_in_.start + 3600 * 24 <
-                                                                         datetime.now().timestamp() else "enrolled"),
+                       "status": "forced" if e.forced else (
+                           "expired" if e.enroled_in_.start < datetime.now().timestamp() else "enrolled"),
                        "current": e.enroled_in_.participant_count,
                        "start": e.enroled_in_.start,
                        "id": e.enroled_in_.id} for e in enrolments]
