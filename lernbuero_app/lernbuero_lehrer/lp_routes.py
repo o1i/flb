@@ -40,6 +40,7 @@ def get_enrolled_in():
             e = Enrolment()
             e.enroled_sus_ = sus
             e.forced = True
+            db.session.add(e)
             try:
                 lbi.enroled_sus.append(e)
                 db.session.commit()

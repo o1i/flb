@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 sus_bp = Blueprint("sus_bp", __name__, template_folder="templates", static_folder="static")
 
 
-@sus_bp.route('/api/v1/sus/enrolment/', methods=["GET", "POST"])
+@sus_bp.route('/api/v1/sus/enrolment/', methods=["GET", "POST", "DELETE"])
 @jwt_required
 def get_enrolled_in():
     user_cred = get_jwt_identity()
@@ -24,8 +24,8 @@ def get_enrolled_in():
         return jsonify(["Invalid user credentials"]), 400
     if user_cred["user_type"] != "sus":
         return jsonify(["Invalid user type"]), 400
+    user = User.query.get(user_cred["user_id"])
     if request.method == "POST":
-        user = User.query.get(user_cred["user_id"])
         try:
             lb_instance = LbInstance.query.get(request.json["id"])
             if len(lb_instance.enroled_sus.all()) < lb_instance.lernbuero.capacity:
@@ -49,12 +49,21 @@ def get_enrolled_in():
         except KeyError:
             print("Wrong request")
             pass
+    if request.method == "DELETE":
+        enrolments = (db.session.query(Enrolment)
+                      .filter(Enrolment.lbinstance_id == request.json["lbi_id"])
+                      .filter(Enrolment.user_id == user.id)
+                      .all())
+        if enrolments:
+            for e in enrolments:  # there should be only one, but one never knows
+                db.session.delete(e)
+            db.session.commit()
     current_week = datetime.now().isocalendar()[1]
     user = User.query.get(user_cred["user_id"])
     enrolments = [e for e in user.enroled_in.all() if current_week <= e.enroled_in_.kw <= current_week+2]
     enrolment_info = [{"lb": e.enroled_in_.lernbuero.get_dict(),
-                       "status": "forced" if e.forced else ("expired" if e.enroled_in_.start + 3600 * 24 <
-                                                                         datetime.now().timestamp() else "enrolled"),
+                       "status": "forced" if e.forced else (
+                           "expired" if e.enroled_in_.start < datetime.now().timestamp() else "enrolled"),
                        "current": e.enroled_in_.participant_count,
                        "start": e.enroled_in_.start,
                        "id": e.enroled_in_.id} for e in enrolments]
