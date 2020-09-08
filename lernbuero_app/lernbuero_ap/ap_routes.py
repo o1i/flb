@@ -131,36 +131,48 @@ def lernbuero():
                 return jsonify(["invalid teacher name"]), 400
             if request.json["id"] > 0:  # edit
                 lb = Lernbuero.query.get(request.json["id"])
-                lb.name = request.json["name"]
-                lb.capacity = request.json["capacity"]
-                lb.lp_id = lp.id
-                lb.ort = request.json["ort"]
+                lbs = (db.session.query(Lernbuero)
+                       .filter(Lernbuero.name == lb.name)
+                       .filter(Lernbuero.gruppe_id == lb.gruppe_id)
+                       .all())
+                for i in lbs:
+                    print(i)
+                for lb_ in lbs:
+                    lb_.name = request.json["name"]
+                    lb_.capacity = request.json["capacity"]
+                    lb_.lp_id = lp.id
+                    lb_.ort = request.json["ort"]
                 db.session.commit()
             else:  # add
                 gruppe = Gruppe.query.get(request.json["block"]["gruppe"]["id"])
-                lb = Lernbuero(
-                    name=request.json["name"],
-                    capacity=request.json["capacity"],
-                    lp_id=lp.id,
-                    lp=lp,
-                    gruppe_id=request.json["block"]["gruppe"]["id"],
-                    gruppe=gruppe,
-                    block_id=request.json["block"]["id"],
-                    block=block,
-                    ort=request.json["ort"]
-                )
-                db.session.add(lb)
+                blocks = db.session.query(Block).filter(Block.gruppe_id == gruppe.id).all()
+                lbs = []
+                for block in blocks:
+                    lb = Lernbuero(
+                        name=request.json["name"],
+                        capacity=request.json["capacity"],
+                        lp_id=lp.id,
+                        lp=lp,
+                        gruppe_id=request.json["block"]["gruppe"]["id"],
+                        gruppe=gruppe,
+                        block_id=block.id,
+                        block=block,
+                        ort=request.json["ort"]
+                    )
+                    db.session.add(lb)
+                    lbs.append((lb, block.weekday, block.start))
                 this_week = datetime.now().isocalendar()[1]
                 for i in range(52):
-                    start = datetime.strptime(str(datetime.now().year)+str(this_week)+str(block.weekday)+block.start,
-                                              "%G%V%u%H:%M") + timedelta(weeks=i)
-                    db.session.add(LbInstance(
-                        lernbuero_id=lb.id,
-                        lernbuero=lb,
-                        participant_count=0,
-                        start=int(start.timestamp()),
-                        kw=start.strftime("%V")
-                    ))
+                    for lb_ in lbs:
+                        start = datetime.strptime(str(datetime.now().year)+str(this_week)+str(lb_[1])+lb_[2],
+                                                  "%G%V%u%H:%M") + timedelta(weeks=i)
+                        db.session.add(LbInstance(
+                            lernbuero_id=lb_[0].id,
+                            lernbuero=lb_[0],
+                            participant_count=0,
+                            start=int(start.timestamp()),
+                            kw=start.strftime("%V")
+                        ))
                 db.session.commit()
     if request.method == "DELETE":
         try:
