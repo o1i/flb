@@ -76,6 +76,7 @@ def get_enrolled_in():
                 "from": (today + timedelta(days=-today.weekday(), weeks=offset)).strftime("%d.%m."),
                 "to": (today + timedelta(days=-today.weekday() + 4, weeks=offset)).strftime("%d.%m.")}
     block_info = [{"id": b.id, "weekDay": b.weekday, "start": b.start, "end": b.end} for b in blocks]
+    block_info.sort(key=lambda x: x["start"])
     week_info = [one_week(i) for i in range(2)]
     return jsonify({"lbInstances": enrolment_info, "blocks": block_info, "kws": week_info}), 200
 
