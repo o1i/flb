@@ -61,7 +61,9 @@ class Lernbuero(db.Model):
             "capacity": self.capacity,
             "lp_id": self.lp_id,
             "gruppe_id": self.gruppe_id,
-            "block_id": self.block_id
+            "block_id": self.block_id,
+            "lehrer": self.lp.email,
+            "ort": self.ort
         })
 
     def __repr__(self) -> str:

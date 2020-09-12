@@ -57,27 +57,32 @@ def get_enrolled_in():
     this_week = datetime.now().isocalendar()[1]
     kws = [this_week, this_week + 1, this_week + 2]
     enrolments = (
-        db.session.query(LbInstance, Lernbuero, Enrolment, User, Block)
+        db.session.query(LbInstance, Lernbuero, Block, Enrolment, User)
             .filter(LbInstance.lernbuero_id == Lernbuero.id)
             .filter(Lernbuero.block_id == Block.id)
-            .filter(LbInstance.id == Enrolment.lbinstance_id)
-            .filter(Enrolment.user_id == User.id)
             .filter(Lernbuero.lp_id == user_cred["user_id"])
             .filter(LbInstance.kw.in_(kws))
+            .join(Enrolment, LbInstance.id == Enrolment.lbinstance_id, isouter=True)
+            .join(User, User.id == Enrolment.user_id, isouter=True)
             .all()
         )
-    lbis = {(e[0].id, e[0].kw): {"lbInstance": {
-        "lb": {"id": e[1].id, "name": e[1].name, "ort": e[1].ort, "soft": e[1].capacity,
-               "block": {"weekDay": e[4].weekday, "start": e[4].start, "end": e[4].end}},
-        "current": 0, "start": e[0].start, "id": e[0].id},
-                                 "sus": []} for e in enrolments}
+    lbis = {(e[0].id, e[0].kw): {
+        "lbInstance": {
+            "lb": {"id": e[1].id, "name": e[1].name, "ort": e[1].ort, "soft": e[1].capacity,
+                   "block": {"weekDay": e[2].weekday, "start": e[2].start, "end": e[2].end}},
+            "current": 0, "start": e[0].start, "id": e[0].id},
+        "sus": []} for e in enrolments}
+
     for e in enrolments:
-        lbis[(e[0].id, e[0].kw)]["sus"].append({"name": e[3].email, "id": e[3].id})
+        if e[4] is not None:
+            lbis[(e[0].id, e[0].kw)]["sus"].append({"name": e[4].email, "id": e[4].id})
 
     for k, v in lbis.items():
         lbis[k]["lbInstance"]["current"] = len(lbis[k]["sus"])
 
     out = [[v for k, v in lbis.items() if k[1] == kw] for kw in kws]
+    for part in out:
+        part.sort(key=lambda x: x["lbInstance"]["start"])
     return jsonify(out), 200
 
 
