@@ -46,6 +46,12 @@ def main():
         db.session.add(a1)
         db.session.commit()
 
+        s1.lp = l1
+        s2.lp= l1
+        s3.lp = l2
+        s4.lp = l2
+        db.session.commit()
+
         lb1 = Lernbuero(name="lb1", capacity=25, block=b1, block_id=b1.id, lp_id=l1.id, lp=l1, ort="ort1", gruppe=g1, gruppe_id=g1.id)
         lb2 = Lernbuero(name="lb2", capacity=25, block=b1, block_id=b1.id, lp_id=l2.id, lp=l2, ort="ort2", gruppe=g1, gruppe_id=g1.id)
         lb3 = Lernbuero(name="lb3", capacity=25, block=b2, block_id=b2.id, lp_id=l1.id, lp=l1, ort="ort3", gruppe=g1, gruppe_id=g1.id)

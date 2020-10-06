@@ -95,6 +95,8 @@ class User(db.Model):
     enroled_in = db.relationship("Enrolment", back_populates="enroled_sus_", lazy='dynamic', cascade="delete")
     gruppe_id = db.Column(db.Integer, db.ForeignKey("gruppe.id"))
     gruppe = db.relationship("Gruppe", back_populates="users")
+    lp_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    lp = db.relationship("User", foreign_keys=[lp_id], remote_side=[id])
 
     def __repr__(self) -> str:
         return f"User(email: {self.email}, level: {self.type})"
